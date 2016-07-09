@@ -1,43 +1,28 @@
-import Promise        from 'bluebird';
-import DataURI        from 'datauri';
-import path           from 'path';
+export class User{}
+export class Vprasanja{}
+export class Odgovori{}
 
-function Image(id, title, url) {
-  this.id = id.toString()
-  this.title = title;
-  this.url = url;
+let user = new User();
+user= [
+{name: Tomaz},
 
-}
-var images = [];
+]
+let vprasanja = new Vprasanja();
+let vprasanja= [
+{vpr: "kaj si pil?"}
 
-var image = new Image(images.length,'reactive-native','reactive-native.png');
-images.push(image);
+]
 
-function getAnonymousImage(){
-  return images[0];
-}
+let odgovori= new Odgovori();
+let odgovori= [
+ { odg:"burek"},
+  {odg:"kebab"},
+  {odg:"tuna"},
+  {odg: "frajer"},
+]
 
-function uploadImage(title, file){
-  console.log('uploadImage',title, file);
+export function getUser() {return user;}
+export function getVprasanja() {return vprasanja;}
+export function getOdgovori() {return Odgovori;}
 
 
-  return new Promise(function(resolve, reject) {
-    
-    if(file){
-      var img = new Image(images.length, title, file.path);
-      images.push(img);
-      resolve(img);
-      
-    }else{
-      reject('failed to store image')
-    }
-    
-  });
-}
-
-module.exports = {
-  Image: Image,
-  uploadImage: uploadImage,
-  getAnonymousImage: getAnonymousImage,
-  getImage: function(id) { return images.filter(function(i) { return i.id == id })[0] }
-}

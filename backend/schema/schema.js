@@ -2,7 +2,7 @@ var GraphQL = require('graphql')
 var GraphQLRelay = require('graphql-relay')
 import { connectionArgs, fromGlobalId, globalIdField, connectionFromArray, mutationWithClientMutationId } from 'graphql-relay';
 import { GraphQLNonNull, GraphQLInputObjectType, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLID, GraphQLList } from 'graphql';
-import { Image, getImage, getAnonymousImage, uploadImage } from './database';
+import {User, Vprasanja, Odgovori,getUser,getVprasanja,getOdgovori  } from './database';
 
 // This module exports a GraphQL Schema, which is a declaration of all the
 // types, queries and mutations we'll use in our system.
@@ -19,83 +19,39 @@ import { Image, getImage, getAnonymousImage, uploadImage } from './database';
 // but it's actually optional, so we'll leave it out and use isTypeOf on the
 // GraphQL types further below.
 
-var nodeDefinitions = GraphQLRelay.nodeDefinitions(function(globalId) {
-  var idInfo = GraphQLRelay.fromGlobalId(globalId)
-  if (idInfo.type == 'Image') {
-    return getImage(idInfo.id)
+let {nodeInterface,nodeField} = nodeDefinitions(
+  (globalId) => {
+    var{type,id} = fromGlobalId(globalId);
+    if (type === 'User') {
+      return getUser(id);
+    } else if (type === 'Vprasanja' ) {
+      return getVprasanja(id);
+    } else if (type === 'Odgovori') {
+      return getOdgovori(id);
+    } else {
+      return null;
+    }
   }
-  return null
-})
+  );
 
-var imageType = new GraphQL.GraphQLObjectType({
-  name: 'Image',
-  description: 'An image entity',
-  isTypeOf: function(obj) { return obj instanceof Image },
-
-  // We use a closure here because we need to refer to widgetType from above
-  fields: function() {
-    return {
-      id: GraphQLRelay.globalIdField('Image'),
-      url: {
-        type: GraphQL.GraphQLString,
-        description: 'The URL of the image',
-      }
-    }
+var UserType = new GraphQLObjectType({
+  name: 'User',
+  description: 'nas user',
+  fields: () => ({
+    id:globalIdField('User'),
+    name: {GraphQLString,
+    resolve: (name) => getUser(),
   },
-  interfaces: [nodeDefinitions.nodeInterface],
-})
+  })
+});
 
-// Now we can bundle our types up and export a schema
-// GraphQL expects a set of top-level queries and optional mutations (we have
-// none in this simple example so we leave the mutation field out)
-module.exports = new GraphQL.GraphQLSchema({
-  query: new GraphQL.GraphQLObjectType({
-    name: 'Query',
-    fields: {
-      // Relay needs this to query Nodes using global IDs
-      node: nodeDefinitions.nodeField,
-      // Our own root query field(s) go here
-      image: {
-        type: imageType,
-        resolve: function() { return getAnonymousImage() },
-      },
-    },
-  }),
-
-  mutation: new GraphQL.GraphQLObjectType({
-    name: 'Mutation',
-    fields: {
-      image: mutationWithClientMutationId({
-        name: 'ImageMutation',
-        description: 'Upload image',
-        inputFields: {
-          title: {
-            type: GraphQLString
-          }
-        },
-        outputFields: {
-          image: {
-            type: imageType,
-            description: 'Image entity',
-            resolve: (payload) => payload.image
-          },
-          error: {
-            type: GraphQLString,
-            description: "Decsription of the error if anything",
-            resolve: (payload) => payload.error
-          }
-        },
-        mutateAndGetPayload: async ({ title }, { rootValue }) => {
-          var file  = rootValue.request.file;
-          let image = await uploadImage(title, file);
-          let error = null;
-
-          return {
-            image:  image,
-            error:  error
-          }
-        }
-      })
-    }
+var VprasanjaType = new GraphQLObjectType({
+  name: 'Vprasanja',
+  description: 'kaj sprasujemo',
+  fields: () => ({
+    id:globalIdField('Vprasanja'),
+    vprasanja: {}
   })
 })
+
+
